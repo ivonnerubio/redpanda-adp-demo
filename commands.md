@@ -58,3 +58,37 @@ python -m src.common.verify_audit            # -> [FAIL] Record 5 TAMPERED
 # Verify audit agent
 python3 -m src.agent.agent
 python3 -m src.common.verify_audit
+
+
+
+
+
+
+# FINAL
+
+# Demo
+
+## Setup (first time only)
+```bash
+for t in raw-events agent-safe-events agent-proposals audit-log; do rpk topic create $t -p 1 -r 3; done
+```
+
+## Reset (clean slate)
+```bash
+rpk topic delete raw-events agent-safe-events agent-proposals audit-log
+for t in raw-events agent-safe-events agent-proposals audit-log; do rpk topic create $t -p 1 -r 3; done
+```
+
+## Run (3 tabs, in order)
+```bash
+python3 -m src.agent.agent          # tab 1: agent
+python3 -m src.governance.consumer  # tab 2: governance
+python3 -m src.producer.producer    # tab 3: producer (~40 events, then Ctrl-C)
+```
+
+## Verify
+```bash
+python3 -m src.common.verify_audit                          # audit chain intact
+rpk topic consume agent-proposals --num 5 --offset start    # agent decisions
+rpk topic consume agent-safe-events --num 3 --offset start  # PII is masked
+```
