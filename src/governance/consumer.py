@@ -22,7 +22,7 @@ def run(conf):
     policy = load_policy()
     consumer, producer = build_clients(conf)
     consumer.subscribe(["raw-events"])
-    print("governance consumer started, waiting for messages...")  # <-- add
+    print("governance consumer started, waiting for messages...")
 
     try:
         while True:
@@ -49,11 +49,11 @@ def run(conf):
                 value=json.dumps(safe_event).encode(),
             )
             producer.flush()
-            
+
             append_audit({
-            "event_id": event.get("id"),
-            "redacted_fields": redacted,
-            "policy_version": policy["policy_version"],
+                "event_id": event.get("transaction_id"),
+                "redacted_fields": redacted,
+                "policy_version": policy["policy_version"],
             })
 
             consumer.commit(msg)

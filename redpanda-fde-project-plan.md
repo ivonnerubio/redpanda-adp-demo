@@ -93,7 +93,6 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 | Policy | Plain YAML/JSON config | Declarative = looks production-minded |
 | CLI/admin | `rpk` | For creating topics, inspecting messages |
 
-**Decision to make before coding:** confirm your language and whether you have an LLM API key ready. If no LLM access, the agent can use a rules-based "reasoner" and you note "LLM-pluggable here" — still demonstrates the architecture.
 
 ---
 
@@ -116,16 +115,16 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 - [X] Create `.env` / config for cluster + API creds (never hardcode)
 
 ### Phase 1 — Data pipeline (target: ~1.5 hrs)
-- [ ] Write synthetic transaction generator (faker-style: amount, merchant, card number, holder name, SSN, geo, timestamp)
-- [ ] Producer publishes N events/sec to `raw-events`
-- [ ] Verify with `rpk topic consume raw-events`
+- [X] Write synthetic transaction generator (faker-style: amount, merchant, card number, holder name, SSN, geo, timestamp)
+- [X] Producer publishes N events/sec to `raw-events`
+- [X] Verify with `rpk topic consume raw-events`
 
 ### Phase 2 — Governance layer (target: ~2 hrs) ← **the centerpiece**
-- [ ] Define policy config: which fields are redacted for the agent (PAN, SSN, full name → masked)
-- [ ] Consumer reads `raw-events`, applies redaction, produces to `agent-safe-events`
-- [ ] Every redaction decision logged to `audit-log` (what was seen, what was masked, timestamp, policy version)
-- [ ] Implement hash-chaining on audit records for tamper-evidence
-- [ ] Verify: agent-safe-events contains masked data; audit-log is complete
+- [X] Define policy config: which fields are redacted for the agent (PAN, SSN, full name → masked)
+- [X] Consumer reads `raw-events`, applies redaction, produces to `agent-safe-events`
+- [X] Every redaction decision logged to `audit-log` (what was seen, what was masked, timestamp, policy version)
+- [X] Implement hash-chaining on audit records for tamper-evidence
+- [X] Verify: agent-safe-events contains masked data; audit-log is complete
 
 ### Phase 3 — Agent (target: ~2 hrs)
 - [ ] Consumer reads `agent-safe-events`
