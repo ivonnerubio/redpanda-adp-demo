@@ -1,0 +1,98 @@
+# redaction-policy.yaml
+# Declarative policy for the governance layer.
+# The governance consumer reads raw-events, applies these rules, and writes
+# sanitized events to agent-safe-events. Every decision is logged to audit-log.
+#
+# Design intent (say this in the interview): the agent NEVER sees raw PII.
+# What the agent is cleared to see is defined here, outside the agent's code
+# path — so clearance changes are a config edit + policy version bump, not a
+# redeploy of the agent.
+
+policy_version: "1.0.0"      # bump on any rule change; written into each audit record
+domain: financial-transactions
+
+# Redaction strategies available to fields below:
+#   mask_all      -> replace entire value with a fixed token
+#   mask_partial  -> keep a few leading/trailing chars, mask the middle (e.g. PAN)
+#   hash          -> deterministic salted hash (agent can correlate without seeing value)
+#   drop          -> remove the field entirely from the agent-safe event
+#   passthrough   -> field is sent to the agent unchanged (explicitly cleared)
+
+defaults:
+  # Any field NOT listed under `fields` is treated as this. Fail-closed:
+  # unknown/unanticipated fields are dropped so schema drift can't leak PII.
+  unlisted_field_strategy: drop
+  mask_token: "***REDACTED***"
+
+fields:
+  # ---- Sensitive: redacted before the agent ever sees them ----
+  card_number:            # PAN / PCI
+    strategy: mask_partial
+    keep_last: 4
+    keep_first: 0
+    mask_char: "X"
+    classification: PCI
+
+  ssn:
+    strategy: mask_all
+    classification: PII
+
+  account_holder_name:
+    strategy: hash          # agent can group by holder without seeing identity
+    classification: PII
+
+  email:
+    strategy: mask_all
+    classification: PII
+
+  # ---- Cleared: the agent needs these to reason about fraud ----
+  transaction_id:
+    strategy: passthrough
+    classification: non-sensitive
+
+  amount:
+    strategy: passthrough
+    classification: non-sensitive
+
+  currency:
+    strategy: passthrough
+    classification: non-sensitive
+
+  merchant:
+    strategy: passthrough
+    classification: non-sensitive
+
+  merchant_category:
+    strategy: passthrough
+    classification: non-sensitive
+
+  geo_country:
+    strategy: passthrough    # coarse geo is fine and useful for fraud signals
+    classification: non-sensitive
+
+  geo_city:
+    strategy: passthrough
+    classification: non-sensitive
+
+  timestamp:
+    strategy: passthrough
+    classification: non-sensitive
+
+# Salt for the `hash` strategy. In production this comes from a secret manager,
+# NOT from config — noted here so the reviewer sees you know the difference.
+hashing:
+  salt_env_var: REDACTION_HASH_SALT
+  algorithm: sha256
+  output_length: 16          # truncated hex digest, enough to correlate
+
+# What the audit record should capture for each redaction decision.
+audit:
+  record_fields:
+    - transaction_id         # correlation key (safe to log)
+    - policy_version
+    - timestamp
+    - redacted_fields        # list of field names that were masked/hashed/dropped
+    - strategy_per_field     # map: field -> strategy applied
+  # Do NOT log the raw values that were redacted — the audit log must not
+  # become a side-channel that leaks the very PII we're protecting.
+  log_raw_values: false

@@ -117,12 +117,12 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 
 ### Phase 1 — Data pipeline (target: ~1.5 hrs)
 - [X] Write synthetic transaction generator (faker-style: amount, merchant, card number, holder name, SSN, geo, timestamp)
-- [ ] Producer publishes N events/sec to `raw-events`
-- [ ] Verify with `rpk topic consume raw-events`
+- [X] Producer publishes N events/sec to `raw-events`
+- [X] Verify with `rpk topic consume raw-events`
 
 ### Phase 2 — Governance layer (target: ~2 hrs) ← **the centerpiece**
-- [ ] Define policy config: which fields are redacted for the agent (PAN, SSN, full name → masked)
-- [ ] Consumer reads `raw-events`, applies redaction, produces to `agent-safe-events`
+- [X] Define policy config: which fields are redacted for the agent (PAN, SSN, full name → masked)
+- [X] Consumer reads `raw-events`, applies redaction, produces to `agent-safe-events`
 - [ ] Every redaction decision logged to `audit-log` (what was seen, what was masked, timestamp, policy version)
 - [ ] Implement hash-chaining on audit records for tamper-evidence
 - [ ] Verify: agent-safe-events contains masked data; audit-log is complete
