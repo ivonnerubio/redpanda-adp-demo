@@ -92,3 +92,13 @@ python3 -m src.common.verify_audit                          # audit chain intact
 rpk topic consume agent-proposals --num 5 --offset start    # agent decisions
 rpk topic consume agent-safe-events --num 3 --offset start  # PII is masked
 ```
+
+
+
+
+NEW FINAL
+
+python -m src.producer.producer      # generate transactions
+python -m src.governance.consumer.    # redact + audit
+python -m src.agent.agent             # propose actions
+python -m src.gateway.gateway         # rule on proposals

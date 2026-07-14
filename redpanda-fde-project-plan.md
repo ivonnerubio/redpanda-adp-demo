@@ -134,10 +134,10 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 - [X] Log agent reasoning to `audit-log`
 
 ### Phase 4 — Action gateway (target: ~1.5 hrs)
-- [ ] Define action allow-list policy (`flag_for_review` = allow; `freeze_account` = deny/escalate)
-- [ ] Gateway validates proposed action → executes permitted, blocks the rest
-- [ ] Every allow/deny logged to `audit-log`
-- [ ] Permitted actions written to `agent-actions`
+- [X] Define action allow-list policy (`flag_for_review` = allow; `freeze_account` = deny/escalate)
+- [X] Gateway validates proposed action → executes permitted, blocks the rest
+- [X] Every allow/deny logged to `audit-log`
+- [X] Permitted actions written to `agent-actions`
 
 ### Phase 5 — Demo harness + observability (target: ~1.5 hrs)
 - [ ] A single `make demo` / `run.sh` that spins up all components
