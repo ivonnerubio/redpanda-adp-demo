@@ -127,11 +127,11 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 - [X] Verify: agent-safe-events contains masked data; audit-log is complete
 
 ### Phase 3 — Agent (target: ~2 hrs)
-- [ ] Consumer reads `agent-safe-events`
-- [ ] LLM prompt: given (masked) transaction, decide if suspicious + propose an action from the allowed vocabulary
-- [ ] Agent emits a *proposed action* object (not a direct action) to an internal channel/topic
-- [ ] Make output structured (JSON) and parse defensively — handle malformed LLM output
-- [ ] Log agent reasoning to `audit-log`
+- [X] Consumer reads `agent-safe-events`
+- [X] LLM prompt: given (masked) transaction, decide if suspicious + propose an action from the allowed vocabulary
+- [X] Agent emits a *proposed action* object (not a direct action) to an internal channel/topic
+- [X] Make output structured (JSON) and parse defensively — handle malformed LLM output
+- [X] Log agent reasoning to `audit-log`
 
 ### Phase 4 — Action gateway (target: ~1.5 hrs)
 - [ ] Define action allow-list policy (`flag_for_review` = allow; `freeze_account` = deny/escalate)

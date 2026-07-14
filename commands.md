@@ -50,3 +50,11 @@ python -m src.common.verify_audit            # -> [OK] Chain intact.
 # Add after consumer.close(): records[5]["policy_version"] = "9.9.9"
 python -m src.common.verify_audit            # -> [FAIL] Record 5 TAMPERED
 # Delete line, re-run -> [OK]
+
+
+
+
+
+# Verify audit agent
+python3 -m src.agent.agent
+python3 -m src.common.verify_audit
