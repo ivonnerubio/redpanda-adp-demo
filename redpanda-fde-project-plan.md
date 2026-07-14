@@ -216,8 +216,4 @@ redpanda-adp-demo/
 
 ## 10. Minimum viable version (if you only get a few hours)
 
-Producer → governance redaction → agent (even rules-based) → audit log. Skip the action gateway if truly crunched, but *mention* it as the next piece. Even the MVP demonstrates the core thesis.
-
----
-
-**Next step:** decide (a) your language, (b) LLM API vs. rules-based agent, (c) how many hours you realistically have. Tell me those three and I'll generate the actual starter code for each component.
+Producer → governance redaction → agent (anthropic) → audit log. Skip the action gateway if truly crunched, but *mention* it as the next piece. Even the MVP demonstrates the core thesis.
