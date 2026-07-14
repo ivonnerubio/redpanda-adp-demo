@@ -1,0 +1,57 @@
+# action-policy.yaml
+# Declarative policy for the ACTION GATEWAY.
+# The gateway reads agent-proposals, checks each proposed action against the
+# rulings below, executes only what is allowed (writes to agent-actions), and
+# logs every ruling (allow AND deny/escalate) to audit-log.
+#
+# Design intent (say this in the interview): the agent PROPOSES, the gateway
+# DISPOSES. The LLM has no authority to act. What an agent is permitted to do
+# is defined here, outside the agent's code path — so changing what's allowed
+# is a config edit + policy version bump, not a redeploy of the agent.
+
+policy_version: "1.0.0"      # bump on any rule change; written into each audit record
+domain: financial-transactions
+
+# Rulings available:
+#   allow     -> gateway executes it (writes the action to agent-actions)
+#   escalate  -> gateway does NOT execute; routes to a human. High-risk actions
+#                an LLM may recommend but must never trigger on its own.
+#   deny      -> gateway blocks it, no execution, no escalation.
+
+# Ruling per known action.
+actions:
+  no_action:
+    ruling: allow
+    risk: none
+    note: "agent judged the transaction ordinary; nothing to execute downstream"
+
+  flag_for_review:
+    ruling: allow
+    risk: low
+    note: "puts the transaction in a human review queue; nothing irreversible"
+
+  freeze_account:
+    ruling: escalate
+    risk: high
+    note: "freezes a real customer's funds; an LLM must never trigger this alone"
+
+# Fail-closed default. Any proposed action NOT listed above is denied.
+# Mirrors unlisted_field_strategy: drop in the redaction policy — unknown =
+# unsafe. Schema/vocabulary drift can never silently grant a new capability.
+defaults:
+  unlisted_action_ruling: deny
+
+# Where allowed actions are written ("executed"). Named here, not hardcoded.
+execution:
+  output_topic: agent-actions
+
+# What each audit record should capture for a ruling. Mirrors the redaction
+# policy's audit block so the whole system logs consistently.
+audit:
+  record_fields:
+    - transaction_id     # correlation key
+    - policy_version
+    - timestamp
+    - proposed_action    # what the agent asked for
+    - ruling             # what the gateway decided
+    - executed           # true only when written to agent-actions
