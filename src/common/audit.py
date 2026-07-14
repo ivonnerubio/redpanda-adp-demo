@@ -1,29 +1,23 @@
-import json, time
+#src/common/audit/.py
+import json, hashlib, datetime
 from confluent_kafka import Producer
+from src.common.config import load_kafka_config
 
-def build_audit_producer(conf):
-    return Producer(conf)
+_producer = None
 
-def append_audit(producer, record):
-    """Write one audit record to audit-log. Fire-and-forget with periodic flush."""
+def _get_producer():
+    global _producer
+    if _producer is None:
+        _producer = Producer(load_kafka_config())
+    return _producer
+
+def append_audit(record: dict):
+    # stamp every audit entry with UTC time
+    record["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    producer = _get_producer()
     producer.produce(
         "audit-log",
-        key=record.get("transaction_id", "").encode() if record.get("transaction_id") else None,
-        value=json.dumps(record).encode(),
+        value=json.dumps(record, sort_keys=True).encode(),
     )
-
-def make_audit_record(event, redacted_fields, policy):
-    """Build a tamper-safe audit record. Never includes raw values."""
-    return {
-        "transaction_id": event.get("transaction_id") or event.get("id"),
-        "timestamp": time.time(),
-        "policy_version": policy["policy_version"],
-        "redacted_fields": redacted_fields,          # which fields were masked
-        "strategy_per_field": {
-            f: policy["redactions"][f]["strategy"]
-            for f in redacted_fields
-            if f in policy["redactions"]
-        },
-        "fields_seen": sorted(event.keys()),         # field NAMES only, never values
-        "log_raw_values": False,                     # explicit: we never store PII here
-    }
+    producer.flush()

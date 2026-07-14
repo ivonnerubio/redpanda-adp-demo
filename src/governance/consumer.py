@@ -2,7 +2,7 @@ import json, yaml
 from confluent_kafka import Consumer, Producer
 from src.governance.redactor import apply_redaction
 from src.common.config import load_kafka_config
-# from common.audit import append_audit  # Phase 2 next steps
+from src.common.audit import append_audit
 
 def load_policy(path="config/redaction-policy.yaml"):
     with open(path) as f:
@@ -49,13 +49,12 @@ def run(conf):
                 value=json.dumps(safe_event).encode(),
             )
             producer.flush()
-
-            # Next checkbox: log to audit-log with policy_version + redacted fields
-            # append_audit({
-            #     "event_id": event.get("id"),
-            #     "redacted_fields": redacted,
-            #     "policy_version": policy["policy_version"],
-            # })
+            
+            append_audit({
+            "event_id": event.get("id"),
+            "redacted_fields": redacted,
+            "policy_version": policy["policy_version"],
+            })
 
             consumer.commit(msg)
     finally:
