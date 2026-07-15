@@ -146,11 +146,11 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 - [X] Show the audit-log hash-chain verifying (tamper-check command)
 
 ### Phase 6 — Handoff artifacts (target: ~1.5 hrs) ← **FDE differentiator**
-- [ ] `README.md`: what it is, architecture diagram, how to run, config reference
-- [ ] `DESIGN.md`: the "outside the data path" rationale + tradeoffs
-- [ ] `PRODUCTIZE.md`: what I'd build next / what should be a Redpanda product feature
-- [ ] Clean up code, comments, remove dead paths
-- [ ] Record a 2–3 min screen capture as backup in case live demo has issues
+- [X] `README.md`: what it is, architecture diagram, how to run, config reference
+- [X] `DESIGN.md`: the "outside the data path" rationale + tradeoffs
+- [X] `PRODUCTIZE.md`: what I'd build next / what should be a Redpanda product feature
+- [X] Clean up code, comments, remove dead paths
+- [X] Record a 2–3 min screen capture as backup in case live demo has issues
 
 ### Phase 7 — Interview prep (target: night before)
 - [ ] Rehearse the 5-min walkthrough narrative
