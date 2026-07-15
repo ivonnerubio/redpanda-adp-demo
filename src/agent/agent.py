@@ -6,6 +6,9 @@ from src.common.audit import append_audit
 
 ALLOWED_ACTIONS = ["flag_for_review", "freeze_account", "no_action"]
 
+DEMO_DRAIN = os.getenv("DEMO_DRAIN") == "1"
+DRAIN_IDLE_LIMIT = 5  # consecutive empty polls before draining (~5s)
+
 client = Anthropic(
     api_key=os.environ["ANTHROPIC_API_KEY"],
     timeout=30.0,
@@ -74,12 +77,18 @@ def run(conf):
     consumer, producer = build_clients(conf)
     consumer.subscribe(["agent-safe-events"])
     print("fraud agent started, waiting for governed events...")
+    idle_polls = 0
 
     try:
         while True:
             msg = consumer.poll(1.0)
             if msg is None:
+                idle_polls += 1
+                if DEMO_DRAIN and idle_polls >= DRAIN_IDLE_LIMIT:
+                    print("no more events, draining and exiting")
+                    break
                 continue
+            idle_polls = 0
             if msg.error():
                 print(f"consumer error: {msg.error()}")
                 continue

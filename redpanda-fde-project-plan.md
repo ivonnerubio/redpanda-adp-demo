@@ -140,10 +140,10 @@ Alternative if you prefer: healthcare (PHI redaction, care-coordination agent) o
 - [X] Permitted actions written to `agent-actions`
 
 ### Phase 5 — Demo harness + observability (target: ~1.5 hrs)
-- [ ] A single `make demo` / `run.sh` that spins up all components
-- [ ] A simple console view (or tiny web page) showing: raw event → what agent saw → agent decision → gateway ruling → audit entry
-- [ ] Seed one obviously-fraudulent and one clean transaction so the demo tells a story live
-- [ ] Show the audit-log hash-chain verifying (tamper-check command)
+- [X] A single `make demo` / `run.sh` that spins up all components
+- [X] A simple console view (or tiny web page) showing: raw event → what agent saw → agent decision → gateway ruling → audit entry
+- [X] Seed one obviously-fraudulent and one clean transaction so the demo tells a story live
+- [X] Show the audit-log hash-chain verifying (tamper-check command)
 
 ### Phase 6 — Handoff artifacts (target: ~1.5 hrs) ← **FDE differentiator**
 - [ ] `README.md`: what it is, architecture diagram, how to run, config reference

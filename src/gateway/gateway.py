@@ -5,7 +5,8 @@ from src.common.config import load_kafka_config
 from src.common.audit import append_audit
 
 POLICY_PATH = os.getenv("ACTION_POLICY_PATH", "config/action-policy.yaml")
-
+DEMO_DRAIN = os.getenv("DEMO_DRAIN") == "1"
+DRAIN_IDLE_LIMIT = 5  # consecutive empty polls before draining (~5s)
 
 def load_policy(path: str = POLICY_PATH) -> dict:
     """Read the declarative action policy once, at startup.
@@ -47,11 +48,17 @@ def run(conf, policy):
     policy_version = policy.get("policy_version")
     print("action gateway started, waiting for proposals...")
 
+    idle_polls = 0
     try:
         while True:
             msg = consumer.poll(1.0)
             if msg is None:
+                idle_polls += 1
+                if DEMO_DRAIN and idle_polls >= DRAIN_IDLE_LIMIT:
+                    print("no more proposals, draining and exiting")
+                    break
                 continue
+            idle_polls = 0
             if msg.error():
                 print(f"consumer error: {msg.error()}")
                 continue

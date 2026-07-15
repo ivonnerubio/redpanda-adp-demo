@@ -1,20 +1,27 @@
 # src/producer/producer.py
 import json
-import time
-import signal
+import os
 import sys
 from confluent_kafka import Producer
+import random
+
 
 from src.common.config import load_kafka_config  # your .env-backed config
 from src.producer.generate_transaction import generate_transaction
 
-RATE_PER_SEC = 5          # N events/sec — tune as needed
 TOPIC = "raw-events"
+# Total events to send, then exit. Override with EVENT_COUNT=N.
+EVENT_COUNT = int(os.getenv("EVENT_COUNT", "12"))
+# How many of the batch are seeded fraud / clean story transactions.
+# The rest are random. Override with FRAUD_SEEDS / CLEAN_SEEDS.
+FRAUD_SEEDS = int(os.getenv("FRAUD_SEEDS", "3"))
+CLEAN_SEEDS = int(os.getenv("CLEAN_SEEDS", "3"))
+# SHUFFLE=0 keeps seeds grouped at the front (easy to point at in a demo);
+# SHUFFLE=1 (default) mixes them into the batch for a realistic stream.
+SHUFFLE = os.getenv("SHUFFLE", "1") == "1"
 
 
 def build_producer() -> Producer:
-    # load_kafka_config() should return a dict with bootstrap.servers,
-    # security.protocol, sasl.* etc. pulled from your .env — never hardcode creds.
     conf = load_kafka_config()
     return Producer(conf)
 
@@ -26,43 +33,42 @@ def delivery_report(err, msg):
         print(f"[OK] {msg.topic()}[{msg.partition()}]@{msg.offset()}")
 
 
+def send(producer, event, label):
+    producer.produce(
+        topic=TOPIC,
+        key=event["transaction_id"],
+        value=json.dumps(event).encode("utf-8"),
+        callback=delivery_report,
+    )
+    producer.poll(0)
+    print(f"  sent {label:11s}: {event['transaction_id']} "
+          f"(${event['amount']}, {event['merchant']})")
+
+
 def main():
     producer = build_producer()
-    running = True
 
-    def shutdown(signum, frame):
-        nonlocal running
-        running = False
+    fraud = min(FRAUD_SEEDS, EVENT_COUNT)
+    clean = min(CLEAN_SEEDS, EVENT_COUNT - fraud)
+    random_n = max(0, EVENT_COUNT - fraud - clean)
 
-    signal.signal(signal.SIGINT, shutdown)
-    signal.signal(signal.SIGTERM, shutdown)
+    batch = (
+        [(generate_transaction("fraud"), "FRAUD seed") for _ in range(fraud)]
+        + [(generate_transaction("clean"), "CLEAN seed") for _ in range(clean)]
+        + [(generate_transaction(), "random") for _ in range(random_n)]
+    )
 
-    interval = 1.0 / RATE_PER_SEC
-    sent = 0
+    if SHUFFLE:
+        random.shuffle(batch)
 
-    print(f"Producing ~{RATE_PER_SEC}/sec to '{TOPIC}'. Ctrl-C to stop.")
-    try:
-        while running:
-            event = generate_transaction()
+    print(f"Producing {len(batch)} events to '{TOPIC}' "
+          f"({fraud} fraud, {clean} clean, {random_n} random), then exiting.")
+    for event, label in batch:
+        send(producer, event, label)
 
-            producer.produce(
-                topic=TOPIC,
-                key=event["transaction_id"],      # keying → same txn to same partition
-                value=json.dumps(event).encode("utf-8"),
-                callback=delivery_report,
-            )
-
-            producer.poll(0)   # serve delivery callbacks without blocking
-            sent += 1
-
-            if sent % 20 == 0:
-                print(f"...{sent} sent")
-
-            time.sleep(interval)
-    finally:
-        print("Flushing...")
-        producer.flush(10)
-        print(f"Done. Total sent: {sent}")
+    print("Flushing...")
+    producer.flush(10)
+    print(f"Done. Total sent: {len(batch)}")
 
 
 if __name__ == "__main__":
