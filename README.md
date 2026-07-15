@@ -93,7 +93,7 @@ ESCALATE, not just whatever the random amounts happened to produce.
 
 Note: each event is one paid Claude classification. While iterating on the
 harness, use a small `EVENT_COUNT` (e.g. 4); save larger runs for rehearsing the
-actual demo. Full runbook in `DEMO.md`.
+actual demo.
 
 ### Running components by hand
 
